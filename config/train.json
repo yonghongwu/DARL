@@ -1,6 +1,7 @@
 {
     "name": "DARM_train",
     "phase": "train",
+    "visdom": "False",
     "gpu_ids": [
         1
     ],
@@ -15,15 +16,15 @@
     "datasets": {
         "train": {
             "name": "XCAD",
-            "dataroot": "./data/Dataset_XCAD/",
+            "dataroot": "/new_database/wuyonghuang/Dataset_XCAD/",
             "batch_size": 1,
             "centered": true,
-            "num_workers": 8,
+            "num_workers": 0,
             "use_shuffle": true
         },
         "val": {
             "name": "XCAD",
-            "dataroot": "./data/Dataset_XCAD/",
+            "dataroot": "/new_database/wuyonghuang/Dataset_XCAD/",
             "data_len": 3
         }
     },

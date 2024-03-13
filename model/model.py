@@ -72,8 +72,11 @@ class DARM(BaseModel):
         self.optG.zero_grad()
         output, [l_dif, l_cyc] = self.netG(self.data)
 
-        self.A_noisy, self.A_latent, self.B_noisy, self.B_latent, self.segm_V, self.synt_A, self.recn_F = output
+        self.A_noisy, self.A_latent, self.B_noisy, self.B_latent, \
+        self.segm_V, self.synt_A, \
+        self.recn_F = output
         l_cyc = l_cyc * h_beta
+        # note: 生成的都希望被识别为 真的; 生成的分割（注意这里可以直接生成分割图）、生成的造影图，要求生成器提高能力
         l_adv_Gs = self.netG.loss_gan(self.netD_s(self.segm_V), True) * h_alpha
         l_adv_Ga = self.netG.loss_gan(self.netD_a(self.synt_A), True) * h_alpha
         l_tot = l_dif + l_cyc + l_adv_Gs + l_adv_Ga
@@ -81,6 +84,7 @@ class DARM(BaseModel):
         self.optG.step()
 
         self.optD.zero_grad()  # set D_A and D_B's gradients to zero
+        # note: 真的识别为真，假的识别为假，要求鉴别器提高能力
         segm_V = self.fake_L_pool.query(self.segm_V)
         l_adv_Ds = self.backward_D_basic(self.netD_s, self.data['F'], segm_V) * h_alpha
         synt_A = self.fake_I_pool.query(self.synt_A)

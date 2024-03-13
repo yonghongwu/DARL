@@ -148,7 +148,8 @@ class GaussianDiffusion(nn.Module):
         self.register_buffer('posterior_mean_coef2', to_torch(
             (1. - alphas_cumprod_prev) * np.sqrt(alphas) / (1. - alphas_cumprod)))
 
-    def q_mean_variance(self, x_start, t):
+    # 推断过程，生成过程，去噪过程
+    def q_mean_variance(self, x_start, t):    # note: 真没看到引用。
         mean = extract(self.sqrt_alphas_cumprod, t, x_start.shape) * x_start
         variance = extract(1. - self.alphas_cumprod, t, x_start.shape)
         log_variance = extract(
@@ -239,6 +240,7 @@ class GaussianDiffusion(nn.Module):
     def segment(self, x_in):
         return self.p_sample_segment(x_in)
 
+    # 训练过程，加噪过程
     def q_sample(self, x_start, t, noise=None):
         noise = default(noise, lambda: torch.randn_like(x_start))
 
@@ -259,6 +261,7 @@ class GaussianDiffusion(nn.Module):
         t_a = torch.randint(0, 200, (b,), device=device).long()
         A_noisy = self.q_sample(x_start=a_start, t=t_a, noise=noise)
         A_latent = self.denoise_fn(A_noisy, t_a)
+        # 注意这里noisy和latent拼接的操作。
         segm_V = self.segment_fn(torch.cat([A_noisy, A_latent], dim=1))
 
         #### B path ####

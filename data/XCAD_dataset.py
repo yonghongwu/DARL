@@ -14,6 +14,7 @@ class XCADDataset(Dataset):
 
         if split == 'train':
             # 'trainB'= Image, 'trainC'=Background, 'trainA'=fractal label
+            # 需要使用 https://github.com/AISIGSJTU/SSVS 项目中的 fractal.py 来获得 trainA 中的数据; 已更新到本项目中。
             self.A_paths = sorted(glob.glob(os.path.join(dataroot, self.split, 'trainB', '*.png')))
             self.B_paths = sorted(glob.glob(os.path.join(dataroot, self.split, 'trainC', '*.png')))
             self.F_paths = sorted(glob.glob(os.path.join(dataroot, self.split, 'trainA', '*.png')))
@@ -61,7 +62,7 @@ class XCADDataset(Dataset):
 
             data_A = cv2.imread(A_path, cv2.IMREAD_GRAYSCALE).astype('float')/255.
             data_B = cv2.imread(B_path, cv2.IMREAD_GRAYSCALE).astype('float')/255.
-            data_F = cv2.imread(F_path, cv2.IMREAD_GRAYSCALE).astype('float')/255.
+            data_F = cv2.imread(F_path, cv2.IMREAD_GRAYSCALE).astype('float')   # /255.
 
             data_A = self._random_subsample(data_A)
             data_B = self._random_subsample(data_B)

@@ -12,7 +12,7 @@ import scipy.ndimage as ndimage
 class Visualizer():
     def __init__(self, opt):
         # self.opt = opt
-        self.display_id = 1
+        self.display_id = 1 if opt['visdom'].lower()=='true' else 0
         self.use_html = True
         self.win_size = 160
         self.name = opt['name']

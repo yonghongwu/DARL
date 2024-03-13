@@ -6,6 +6,7 @@ import logging
 import core.logger as Logger
 from tensorboardX import SummaryWriter
 import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 import numpy as np
 from math import *
 import time
@@ -18,7 +19,7 @@ def save_image(image_numpy, image_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', type=str, default='config/test.json', help='JSON file for configuration')
+    parser.add_argument('-c', '--config', type=str, default='config/train.json', help='JSON file for configuration')
     parser.add_argument('-p', '--phase', type=str, choices=['train', 'test'],
                         help='Run either train(training) or test(inference)', default='train')
     parser.add_argument('-gpu', '--gpu_ids', type=str, default=None)
@@ -29,7 +30,12 @@ if __name__ == "__main__":
     opt = Logger.parse(args)
     # Convert to NoneDict, which return None for missing key.
     opt = Logger.dict_to_nonedict(opt)
-    visualizer = Visualizer(opt)
+    if opt['visdom'].lower()=='true':
+        visualizer = Visualizer(opt)
+        visdom = True
+    else:
+        visualizer = None
+        visdom = False
 
     # logging
     torch.backends.cudnn.enabled = True
@@ -82,16 +88,19 @@ if __name__ == "__main__":
                 if (istep+1) % opt['train']['print_freq'] == 0:
                     logs = diffusion.get_current_log()
                     t = (time.time() - iter_start_time) / batchSize
-                    visualizer.print_current_errors(current_epoch, istep+1, training_iters, logs, t, 'Train')
-                    visualizer.plot_current_errors(current_epoch, (istep+1) / float(training_iters), logs)
+                    if visdom:
+                        visualizer.print_current_errors(current_epoch, istep+1, training_iters, logs, t, 'Train')
+                        visualizer.plot_current_errors(current_epoch, (istep+1) / float(training_iters), logs)
                     visuals = diffusion.get_current_visuals()
-                    visualizer.display_current_results(visuals, current_epoch, True)
+                    if visdom:
+                        visualizer.display_current_results(visuals, current_epoch, True)
 
                 # validation
                 if (current_step+1) % opt['train']['val_freq'] == 0:
                     diffusion.test(continous=False)
                     visuals = diffusion.get_current_visuals(isTrain=False)
-                    visualizer.display_current_results(visuals, current_epoch, True)
+                    if visdom:
+                        visualizer.display_current_results(visuals, current_epoch, True)
 
             if current_epoch % opt['train']['save_checkpoint_epoch'] == 0:
                 logger.info('Saving models and training states.')
